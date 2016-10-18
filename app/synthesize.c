@@ -12,7 +12,7 @@
 
 
 void synthesize(PluginManager* pm, Post* post) {
-    dstring rolename = Post_get_id(post);
+    dstring rolename = dstring_dup(Post_get_id(post));
 
     PluginManager_apply_role_hooks(pm, rolename, post);
 }

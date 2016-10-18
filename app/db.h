@@ -19,10 +19,10 @@ typedef struct Post_t Post;
 // it; its accessors return references to these objects, which must not be
 // freed or modified.
 //
-Post* Post_new(dstring id, int instance, unsigned int rate,int size,float** buf);
+Post* Post_new(dstring id, char* instance, unsigned int rate,int size,float** buf);
 void Post_free(Post* post);
 dstring Post_get_id(Post* post);
-int Post_get_instance(Post* post);
+char* Post_get_instance(Post* post);
 unsigned int Post_get_rate(Post* post);
 int Post_get_buf_size(Post* post);
 float** Post_get_buf(Post* post);

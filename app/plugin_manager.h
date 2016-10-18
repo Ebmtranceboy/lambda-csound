@@ -37,7 +37,7 @@ void PluginManager_free(PluginManager* pm);
 // Register a hook for a specific role.
 // Note: rolename is copied to an internal data structure.
 //
-void PluginManager_register_role_hook(PluginManager* pm, dstring rolename, int instance,
+void PluginManager_register_role_hook(PluginManager* pm, dstring rolename, 
                                       PluginRoleHook hook);
 
 

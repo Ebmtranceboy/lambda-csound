@@ -20,7 +20,6 @@
 //
 typedef struct PluginHandleList_t {
     void* handle;
-    int instance;
     struct PluginHandleList_t* next;
 } PluginHandleList;
 
@@ -33,7 +32,7 @@ typedef struct PluginDiscoveryState_t {
 // must export as init_<pluginname>. This function accepts a pointer to a plugin
 // manager. Its return value means an error if < 0, success otherwise.
 //
-typedef int (*PluginInitFunc)(PluginManager*, int);
+typedef int (*PluginInitFunc)(PluginManager*);
 
 
 // Given a filename, return the name of the plugin (the filename
@@ -64,7 +63,7 @@ static dstring get_plugin_name(char* filename) {
 // (e.g. has no init function, or the init function returned an error code),
 // NULL is returned.
 //
-static void* load_plugin(dstring name, dstring fullpath, PluginManager* pm, int instance) {
+static void* load_plugin(dstring name, dstring fullpath, PluginManager* pm) {
     // Make sure the path to dlopen has a slash, for it to consider it 
     // an actual filesystem path and not just a lookup name.
     dstring slashedpath = dstring_format("./%s", dstring_cstr(fullpath));
@@ -92,19 +91,19 @@ static void* load_plugin(dstring name, dstring fullpath, PluginManager* pm, int 
         return NULL;
     }
 
-    int rc = initfunc(pm,instance);
+    int rc = initfunc(pm);
     if (rc < 0) {
         printf("Error: Plugin init function returned %d\n", rc);
         dlclose(libhandle);
         return NULL;
     }
 
-    printf("Loaded instance %d plugin from: '%s'\n", instance, dstring_cstr(fullpath));
+    printf("Loaded plugin from: '%s'\n", dstring_cstr(fullpath));
     return libhandle;
 }
 
 
-void* discover_plugins(dstring dirname, PluginManager* pm, int max_instance) {
+void* discover_plugins(dstring dirname, PluginManager* pm) {
     const char* dirname_s = dstring_cstr(dirname);
     DIR* dir = opendir(dirname_s);
     if (!dir) {
@@ -120,7 +119,6 @@ void* discover_plugins(dstring dirname, PluginManager* pm, int max_instance) {
     // Look at all DSOs in the plugin directory and attempt to load them.
     struct dirent* direntry;
     
-    for(int instance=0; instance<max_instance; instance++){
     while ((direntry = readdir(dir))) {
         dstring name = get_plugin_name(direntry->d_name);
         if (!name)
@@ -128,11 +126,10 @@ void* discover_plugins(dstring dirname, PluginManager* pm, int max_instance) {
         dstring fullpath = dstring_format("%s/%s",
                                           dirname_s, direntry->d_name);
         // Load the plugin, get the DSO handle and add it to the list
-        void* handle = load_plugin(name, fullpath, pm, instance);
+        void* handle = load_plugin(name, fullpath, pm);
         if (handle) {
             PluginHandleList* handle_node = mem_alloc(sizeof(*handle_node));
             handle_node->handle = handle;
-            handle_node->instance = instance;
             handle_node->next = plugins_state->handle_list;
             plugins_state->handle_list = handle_node;
         }
@@ -142,9 +139,7 @@ void* discover_plugins(dstring dirname, PluginManager* pm, int max_instance) {
     }
 
     closedir(dir);
-    dir = opendir(dirname_s);
-    }
-    closedir(dir);
+    
     // Return a state if plugins were found.
     if (plugins_state->handle_list)
         return (void*)plugins_state;

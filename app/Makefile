@@ -14,7 +14,25 @@ FAUST = faust
 
 POLYPHONY = 10
 
-all: main $(patsubst %.c,%.so,$(wildcard $(PLUGIN_DIR)/*.c)) \
+all: 
+	mkdir -p $(PLUGIN_DIR)/$(GENERATOR_DIR)/bak; \
+	mv $(wildcard $(PLUGIN_DIR)/$(GENERATOR_DIR)/*.dsp) $(PLUGIN_DIR)/$(GENERATOR_DIR)/bak; \
+	cd $(PLUGIN_DIR)/$(GENERATOR_DIR)/bak; \
+	for n in $(shell seq 1 $(POLYPHONY)); do \
+		for i in *; do \
+			cp $$i ../$$(basename $$i .dsp)$$n.dsp; \
+		done \
+	done; \
+	cd ../../..; \
+	make rest; \
+	cd $(PLUGIN_DIR)/$(GENERATOR_DIR)/; \
+	rm *.dsp; \
+	mv bak/* .; \
+	rmdir bak; \
+	cd ../..
+	
+
+rest: main $(patsubst %.c,%.so,$(wildcard $(PLUGIN_DIR)/*.c)) \
 	$(patsubst %.dsp,%.so,$(wildcard $(PLUGIN_DIR)/$(GENERATOR_DIR)/*.dsp))
 	make room
 
@@ -60,14 +78,12 @@ $(PLUGIN_DIR)/$(GENERATOR_DIR)/glue-%.c: $(PLUGIN_DIR)/$(GENERATOR_DIR)/%.h
 	printf "#include <$(basename $(notdir $<)).h>\n" > $@; \
 	sed -e "s/tt/$(basename $(notdir $<))/g" glue.c >> $@;
 
+
 $(PLUGIN_DIR)/$(GENERATOR_DIR)/%.so:$(PLUGIN_DIR)/$(GENERATOR_DIR)/%.c \
                                     $(PLUGIN_DIR)/$(GENERATOR_DIR)/glue-%.c
-	$(CC) -o $@ $^ -I. -I$(PLUGIN_DIR)/$(GENERATOR_DIR) -shared ; \
+	$(CC) -o $@ $^ -I. -I$(PLUGIN_DIR)/$(GENERATOR_DIR) -shared -fPIC
 	mv $@ $(PLUGIN_DIR)
-	for n in $(shell seq 1 $(POLYPHONY)); do \
-		cp $$@ $${$$@%.so}$$n.so; \
-	done
-
+	
 $(PLUGIN_DIR)/%.o: $(PLUGIN_DIR)/%.c
 	$(CC) -c $< -o $@ $(CCOPT_SO) -I$(PLUGIN_DIR) -I.
 
@@ -92,7 +108,7 @@ room:
 	rm -rf core *.o	tem.p* $(PLUGIN_DIR)/*.o $(PLUGIN_DIR)/$(GENERATOR_DIR)/*.c \
 	$(PLUGIN_DIR)/$(GENERATOR_DIR)/*.h $(PLUGIN_DIR)/$(GENERATOR_DIR)/*.o \
 	$(PLUGIN_DIR)/$(GENERATOR_DIR)/*.ch $(PLUGIN_DIR)/$(GENERATOR_DIR)/glue-*.c \
-	$(PLUGIN_DIR)/$(GENERATOR_DIR)/*.ce
+	$(PLUGIN_DIR)/$(GENERATOR_DIR)/*.ce $(PLUGIN_DIR)/$(GENERATOR_DIR)/*.so
 
 
 clean:

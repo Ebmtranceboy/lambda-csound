@@ -16,7 +16,7 @@
 // Returns an opaque state object that has to be passed to the cleanup function
 // later. If no plugins are found, returns NULL.
 //
-void* discover_plugins(dstring dirname, PluginManager* pm, int max_instance);
+void* discover_plugins(dstring dirname, PluginManager* pm);
 
 // Cleans up the plugins's resources. Must be called to release plugins in
 // order to avoid resource leaks. Accepts the opaque object returned from

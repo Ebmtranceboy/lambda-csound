@@ -5,13 +5,14 @@
 // This code is in the public domain
 //
 #include "db.h"
+#include "string.h"
 
 #include "clib/mem.h"
 
 
 struct Post_t {
     dstring id;
-    int instance;
+    char instance[5];
     unsigned int rate;
     float freq;
     float wet;
@@ -19,10 +20,10 @@ struct Post_t {
     float **buf;
 };
 
-Post* Post_new(dstring id, int instance, unsigned int rate, int buf_size,float **buf) {
+Post* Post_new(dstring id, char* instance, unsigned int rate, int buf_size,float **buf) {
     Post* post = mem_alloc(sizeof(*post));
     post->id = id;
-    post->instance = instance;
+    strcpy(post->instance, instance);
     post->rate = rate;
     post->buf_size = buf_size;
     post->buf = buf;
@@ -40,7 +41,7 @@ dstring Post_get_id(Post* post) {
     return post->id;
 }
 
-int Post_get_instance(Post* post) {
+char* Post_get_instance(Post* post) {
     return post->instance;
 }
 

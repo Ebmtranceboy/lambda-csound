@@ -297,22 +297,25 @@ snd_seq_connect_from (seq_handle, portid, 20, 0);
     
     bufcard = (short *) malloc (2 * sizeof (short) * BUFSIZE);
     
-    dstring id = dstring_new("logan");
+    dstring id;
     // The Post object takes ownership of the strings passed to it
     
     float ** buf;
-    
-    for(int i=0; i<POLY; i++){
+    char instance[5];
+    for(int i=1; i<=POLY; i++){
+	    id = dstring_new("logan");
+	    sprintf(instance, "%d",i);
             buf= createArray(BUFSIZE,2);
-            post[i] = Post_new(id,i,rate,BUFSIZE,buf);
-            wet[i] = 0.93;
+            post[i-1] = Post_new(id,instance,rate,BUFSIZE,buf);
+
+            wet[i-1] = 0.93;
     }
 
     // Perform plugin discovery in the "plugins" directory relative to the
     // working directory.
     pm = PluginManager_new();
     dstring dirname = dstring_new("plugin");
-    pdstate = discover_plugins(dirname, pm, POLY);  
+    pdstate = discover_plugins(dirname, pm);  
     dstring_free(dirname);
 
     for (l1 = 0; l1 < POLY; note_active[l1++] = 0);

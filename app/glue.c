@@ -11,9 +11,9 @@ static void tt_role_hook(Post* post) {
 }
 
 
-int init_tt(PluginManager* pm, int instance) {
+int init_tt(PluginManager* pm) {
     dstring rolename = dstring_new("tt");
-    PluginManager_register_role_hook(pm, rolename, instance, tt_role_hook);
+    PluginManager_register_role_hook(pm, rolename, tt_role_hook);
     dstring_free(rolename);
     
     instr = newmydsp();
