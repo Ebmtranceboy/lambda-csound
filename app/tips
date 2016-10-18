@@ -1,0 +1,65 @@
+MINISYNTH/MINIARP
+-----------------
+
+build miniArp with:
+gcc -Wall -pedantic -std=c99 -o miniArp miniArp.c -lasound
+
+build miniFMSynth with:
+gcc -Wall -pedantic -std=c99 -o miniFMsynth miniFMsynth.c -lasound -lm
+
+launch miniFMSynth with:
+./miniFMsynth hw:0,0 0.5 4 3 0 0.05 0.1 0.2 0.3
+
+"
+On client id: 128, 
+simple seq port created: 0
+"
+(hitting keyboard should produce sound)
+
+check if id is 128, else edit line 42 and rebuild miniArp 
+
+
+launch miniArp in another terminal with:
+./miniArp 120 melody1.sco
+
+MAIN
+----
+
+build main with:
+make
+
+launch main with:
+./main hw:0,0
+
+modify intrument properties:
+-declare new methods in db.h
+-declare and initialize new parameters,
+ and implement new methods in db.c
+-register new callbacks in tt_role_hook of glue.c
+ the order is alphabetic from corresponding dsp
+-then audio loop in main.c should look like
+
+    float **buf = Post_get_buf(post);
+    
+    synthesize(pm, post);
+    for (l1 = 0; l1 < POLY; l1++) {
+        if (note_active[l1]) {
+          
+	    param1= ...
+	    Post_set_param1(post,param1);
+	    // idem for param2, ...
+	    
+	    for (l2 = 0; l2 < nframes; l2++) {
+	    
+	        int c=0; // left
+		float sound = buf[c][l2];
+         	sound *= ... some_effets...env_time[l1]...
+		bufcard[c+l2*2] = (short)(sound*(float)INT_MAX);
+                bufcard[1+l2*2] = bufcard[c+l2*2]; // right 
+		
+		env_time[l1] += 1.0 / 44100.0;
+		
+	    }
+	}
+    }
+

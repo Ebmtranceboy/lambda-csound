@@ -1,0 +1,125 @@
+ ~~~~~~~~ APPLICATIONS ~~~~~~~~~~~~ 
+
+(+(+ 2 3) (* 2 4)) => 13
+
+((+4).(*3)) 2      => 10
+
+((*3).(+4)) 2      => 18
+
+subtract 7 10      => 3
+7 - 10             => (-3)
+
+2-4==0 ? 0 : 1     => 1
+
+4-4==0?(5==6?0:2):1=> 2
+
+factorial 10       => 3628800
+
+fibonacci 10       => 55
+
+PAIR 'a' 'b' 'c'   => (('c' 'a') 'b')
+
+\ a b c .  (ca)b   => (((.) flip) (flip id))
+
+ ~~~~~~~~ LISTS ~~~~~~~~~~~~ 
+
+empty []? '0':'+'  => '0'
+
+empty [7]? '0':'+' => '+'
+
+head [7]           => 7
+
+s1 = repeat 2      => stream of 2's
+l1 = take 5 s1     => [2,2,2,2,2]
+
+foldr (*) 1 l1     => 32
+
+take 8 (repeat 'H')=> ['H','H','H','H','H','H','H','H']
+
+foldr (:) "" it    => "HHHHHHHH"
+
+l2= 66:('x':(7:[]))=> [66,'x',7]
+
+head $ tail l2     => 'x'
+
+l3 = reverse l2    => [7,'x',66]
+
+l5                 => [4,2,6]
+
+takeWhile (< 5) l5 => [4,2]
+
+concat [l5,l3,l2]  => [4,2,6,7,'x',66,66,'x',7]
+
+l8 = transform it  => [5,3,7,8,0,67,67,0,8]
+
+l9 = filter odd l8 => [5,3,7,67,67]
+
+l10 = take 4 l9    => [5,3,7,67]
+
+l11=scanr (+) 0 l5 => [12,8,6,0]
+
+l12 = map (*2) l5  => [8,4,12]
+
+l13 = scanl + 0 l5 => [0,4,6,12]
+
+last l10           => 67
+
+init l10           => [5,3,7]
+
+s3 = cycle l10     => stream of concat'd l10's
+
+take 7 s3          => [5,3,7,67,5,3,7]
+
+\x-> x(\y-> y x y) => ((ap id) ((flip (((.) ap) (flip id))) id))
+
+ ~~~~~~~~ LET CONSTRUCTS ~~~~~~~~~~~~ 
+
+as "" $ let toUpper = map (subtract 32) in toUpper "abcd"            => "ABCD"
+
+fix (\f n -> if n<2 then 1 else n * (f $ n-1)) 12                    => 479001600
+
+as [] $ let test = fix (\ test n -> if n<0 then [] else n:(test $ n-1))
+       in test 13                                            => [13,12,11,10,9,8,7,6,5,4,3,2,1,0]
+
+let fib = fix (\fib n -> if n<2 then n else (fib $ n-2) + (fib $ n-1)) 
+          in fib 7                                                   => 13
+
+let trans = (\ mp pair -> let f = fst pair xs = snd pair 
+                               in  (f ( head xs)) : (mp [f, tail xs]) ) 
+ in let mp = fix (\mp pair ->  if null (snd pair) then [] else trans mp pair ) 
+        in as [] $ mp [(+2), [3,4,5]]                                => [5,6,7]
+
+let mp = fix (\mp pair -> let f = fst pair 
+                               xs = snd pair 
+                         in if null xs then "" else (f $ head xs) : (mp [f, tail xs])) 
+    in as "" $ mp [subtract 32,"abcd"]                               => "ABCD"
+
+let mp = fix (\mp pair -> let f = fst pair 
+                               xs = snd pair 
+                         in if null xs then "" else (f $ head xs) : (mp [f, tail xs])) 
+   in let toLower = ((as "") . mp . ((+32) :) . (:[])) 
+          in toLower "WXYZ"                                          => "wxyz"
+
+let ack = fix (\f xy -> let x = fst xy    y = snd xy in 
+                          if x==0 then y+1 
+                          else if y==0 then f[x-1,1] 
+                               else f[x-1,f[x,y-1]]) 
+                in ack [1,6]                                         => 8
+
+as [] $ let oddEven = fix (\ oe n -> if n == 0 then [false, true] 
+               else  map not $ oe (n-1)) 
+               in oddEven 21                                         => [true,false]
+
+as [] $ let trans = (\ set -> let m = set!!0  u = set!!1  v = set!!2 
+                                   n = set!!3 ku = set!!4 kv = set!!5 
+                       in let r = rem m n  d = quot m n 
+                                in  [n,       ku ,      kv, 
+                                     r, u-(d*ku), v-(d*kv)]) 
+        in let algo = fix (\algo set -> if (set!!3)==0 then set else algo (trans set)) 
+            in let euclid = (\ x y -> algo [x, 1, 0, y, 0, 1]) 
+                 in euclid 53 15                                    => [1,2,(-7),0,(-15),53]
+
+let liftM2 = (((.) ((.) ap)) (.))  
+    loeb = fix (\ loeb x -> map (\ f -> f $ loeb x) x) 
+  in loeb [ (!!5), const 3, liftM2 (+) (!!0) (!!1), (*2) . (!!2), length, const 17]          => [undefined,3,undefined,0,undefined,17]
+

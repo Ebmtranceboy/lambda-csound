@@ -1,0 +1,17 @@
+.improve string (more functions)
+.improve memory (garbage collector in apply or interpret: memory status at entry and exit, difference...)
+.see program as a big implicit let ("let" a=.. "in let " b=.. main=.. "in main")
+.big integers
+.floats
+.rationals
+.complex algebraic structures (groups, rings, fields...)
+.IO (files, audio...)
+.demo
+.direct character output (with putchar to avoid memory alloc)
+.repl multiline edit support
+.tab with propositions in repl
+.records
+.check laziness/strictness of primitive functions
+.automatic testing suite
+.remove copying to char* in unsugarLets and fix_fct
+.let rec
